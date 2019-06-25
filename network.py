@@ -12,8 +12,8 @@ idict = {"I_e": 0.0}
 nest.CopyModel("iaf_psc_alpha", "inh_iaf_psc_alpha", params=idict)
 nest.SetDefaults("static_synapse",{"weight": 150.0})
 # Create neurons and meters
-BandToPoisson = nest.Create("poisson_generator", bands)
-nest.SetStatus(BandToPoisson, {"rate": 50.0})
+BandSpikeGen = nest.Create("poisson_generator", bands)
+nest.SetStatus(BandSpikeGen, {"rate": 50.0})
 ExcReceiveBand = nest.Create("exc_iaf_psc_alpha", int(bands/4))
 LocInh = nest.Create("inh_iaf_psc_alpha", int(bands/4))
 Detection = nest.Create("exc_iaf_psc_alpha", 1)
@@ -21,7 +21,7 @@ Vmeter = nest.Create("voltmeter", params={"withtime": True})
 Smeter = nest.Create("spike_detector", params={"withgid": True, "withtime": True})
 # Connect neurons and meters
 conn_dict = {"rule": "fixed_indegree", "indegree": 5}
-nest.Connect(BandToPoisson, ExcReceiveBand, conn_dict)
+nest.Connect(BandSpikeGen, ExcReceiveBand, conn_dict)
 nest.Connect(ExcReceiveBand, LocInh, "one_to_one", {"weight": 180, "delay": 1.0})
 nest.Connect(LocInh, ExcReceiveBand, "one_to_one", {"weight": -200, "delay": 1.0})
 nest.Connect(ExcReceiveBand, Detection, {"rule": "fixed_total_number", "N": bands}, {"weight": 9, "delay": 0.1})
