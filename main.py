@@ -1,18 +1,19 @@
 #!/usr/bin/python
 # -*- coding:utf-8 -*-
+import sys
 import numpy as np
 import nest
-from glob import glob
 from brian2 import *
 from brian2hears import *
+
+if(len(sys.argv) != 2):
+    print("No input file!")
 
 def collectSpikes(time, neuron, collect):
     for t, n in zip(time, neuron):
         collect[n].append(round(t.item()*1000, 1))
 
 bands = 32
-DB = "ODB"
-FILES = glob('Datasets/' + DB + '/sounds/*.wav')
 
 # Brian2 neuronal parameters
 eareqs = '''
@@ -43,54 +44,52 @@ nest.Connect(ExcReceiveBand, Detection, {"rule": "fixed_total_number", "N": band
 nest.Connect(Vmeter, Detection)
 nest.Connect(Detection, Smeter)
 
-for f in FILES:
-    print("Parse: " + f)
-    sound = loadsound(f)
-    sound.level = 60*dB
-    print("Brian2hears: Gammatone filtering...")
-    gfb = Gammatone(sound, center_frequencies)
-    print("Brian2: Spike generation...")
-    ihc = FunctionFilterbank(gfb, lambda x: 3*clip(x, 0, Inf)**(1.0/3.0))
-    cochlea = FilterbankGroup(ihc, 'I', eareqs, reset='v=0', threshold='v>1', refractory=5*ms, method='euler')
-    auditoryNerve = SpikeMonitor(cochlea)
-    auditoryNerve.invalidates_magic_network = False
-    # Run Brian2 simulation
-    run(sound.duration, report="stdout")
+sound = loadsound(sys.argv[1])
+sound.level = 60*dB
+print("Brian2hears: Gammatone filtering...")
+gfb = Gammatone(sound, center_frequencies)
+print("Brian2: Spike generation...")
+ihc = FunctionFilterbank(gfb, lambda x: 3*clip(x, 0, Inf)**(1.0/3.0))
+cochlea = FilterbankGroup(ihc, 'I', eareqs, reset='v=0', threshold='v>1', refractory=5*ms, method='euler')
+auditoryNerve = SpikeMonitor(cochlea)
+auditoryNerve.invalidates_magic_network = False
+# Run Brian2 simulation
+run(sound.duration, report="stdout")
 
 ####--------------------------------------------------------
-    print("NEST: Onset detection network...")
-    nest.ResetNetwork()
-    collect = [ [] for i in range(bands) ]
-    collectSpikes(auditoryNerve.t, auditoryNerve.i, collect)
+print("NEST: Onset detection network...")
+nest.ResetNetwork()
+collect = [ [] for i in range(bands) ]
+collectSpikes(auditoryNerve.t, auditoryNerve.i, collect)
 # debug here: print what spikegen really does
-    count = 0
-    for machine in BandSpikeGen:
-        nest.SetStatus([machine], {"spike_times": (collect[count])})
-        count = count+1
+count = 0
+for machine in BandSpikeGen:
+    nest.SetStatus([machine], {"spike_times": (collect[count])})
+    count = count+1
 
-    print("Sim: " + str(round(sound.duration.item())*1000.0))
-    # Run NEST simulation
-    nest.Simulate(round(sound.duration.item())*1000.0)
+print("Sim: " + str(round(sound.duration.item())*1000.0))
+# Run NEST simulation
+nest.Simulate(round(sound.duration.item())*1000.0)
 
-    # Plot membrane potential and spike events of Detection neuron
-    plt.figure(1)
-    plt.subplot(2, 1, 1)
-    dmm = nest.GetStatus(Vmeter)[0]
-    print(dmm)
-    Vms = dmm["events"]["V_m"]
-    ts = dmm["events"]["times"]
-    plt.ylabel("Membrane potential (mV)")
-    plt.plot(ts, Vms)
-    plt.subplot(2, 1, 2)
-    dSD = nest.GetStatus(Smeter, keys="events")[0]
-    evs = dSD["senders"]
-    ts = dSD["times"]
-    plt.xlabel("Time (ms)")
-    plt.ylabel("Neuron ID")
-    plt.plot(ts, evs, 'k.')
-    plt.show()
+# Plot membrane potential and spike events of Detection neuron
+plt.figure(1)
+plt.subplot(2, 1, 1)
+dmm = nest.GetStatus(Vmeter)[0]
+print(dmm)
+Vms = dmm["events"]["V_m"]
+ts = dmm["events"]["times"]
+plt.ylabel("Membrane potential (mV)")
+plt.plot(ts, Vms)
+plt.subplot(2, 1, 2)
+dSD = nest.GetStatus(Smeter, keys="events")[0]
+evs = dSD["senders"]
+ts = dSD["times"]
+plt.xlabel("Time (ms)")
+plt.ylabel("Neuron ID")
+plt.plot(ts, evs, 'k.')
+plt.show()
 
-    # Write spike timing(onset timing) into file
-    with open(f.replace('/sounds/','/predictions/').replace('.wav','.txt'), 'w') as outfile:
-        for spike in dSD["times"]:
-            outfile.write(str(round(spike/1000.0, 4)) + '\n')
+# Write spike timing(onset timing) into file
+with open(sys.argv[1].replace('/sounds/','/predictions/').replace('.wav','.txt'), 'w') as outfile:
+    for spike in dSD["times"]:
+        outfile.write(str(round(spike/1000.0, 4)) + '\n')
