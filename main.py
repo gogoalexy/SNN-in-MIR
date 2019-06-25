@@ -61,7 +61,7 @@ print("NEST: Onset detection network...")
 nest.ResetNetwork()
 collect = [ [] for i in range(bands) ]
 collectSpikes(auditoryNerve.t, auditoryNerve.i, collect)
-# debug here: print what spikegen really does
+
 count = 0
 for machine in BandSpikeGen:
     nest.SetStatus([machine], {"spike_times": (collect[count])})
@@ -71,25 +71,27 @@ print("Sim: " + str(round(sound.duration.item())*1000.0))
 # Run NEST simulation
 nest.Simulate(round(sound.duration.item())*1000.0)
 
-# Plot membrane potential and spike events of Detection neuron
-plt.figure(1)
-plt.subplot(2, 1, 1)
+# Recorded neural data extraction
 dmm = nest.GetStatus(Vmeter)[0]
-print(dmm)
 Vms = dmm["events"]["V_m"]
 ts = dmm["events"]["times"]
-plt.ylabel("Membrane potential (mV)")
-plt.plot(ts, Vms)
-plt.subplot(2, 1, 2)
 dSD = nest.GetStatus(Smeter, keys="events")[0]
 evs = dSD["senders"]
 ts = dSD["times"]
+# Plot membrane potential and spike events of Detection neuron
+'''
+plt.figure(1)
+plt.subplot(2, 1, 1)
+plt.ylabel("Membrane potential (mV)")
+plt.plot(ts, Vms)
+plt.subplot(2, 1, 2)
 plt.xlabel("Time (ms)")
 plt.ylabel("Neuron ID")
 plt.plot(ts, evs, 'k.')
 plt.show()
-
+'''
 # Write spike timing(onset timing) into file
+print("Output predictions...")
 with open(sys.argv[1].replace('/sounds/','/predictions/').replace('.wav','.txt'), 'w') as outfile:
     for spike in dSD["times"]:
         outfile.write(str(round(spike/1000.0, 4)) + '\n')

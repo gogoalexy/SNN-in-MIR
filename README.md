@@ -9,7 +9,7 @@ This project is a demo of how modern bio-inspired spiking neural network(SNN) ca
 * [Brian2hears](https://brian2hears.readthedocs.io/en/stable/)
 * [NEST](https://nest-simulator.readthedocs.io/en/latest/index.html)
 * [ODB dataset](https://grfia.dlsi.ua.es/cm/worklines/pertusa/onset/)
-* Optional(`network.py`) -- [Matplotlib](https://matplotlib.org/)
+* Optional(for additional visualization) -- [Matplotlib](https://matplotlib.org/)
 ### evaluation
 * [gcc compiler](https://gcc.gnu.org/)
 * [tee](http://pubs.opengroup.org/onlinepubs/9699919799/utilities/tee.html)
@@ -26,7 +26,7 @@ This project is a demo of how modern bio-inspired spiking neural network(SNN) ca
 ## How to run the program
 1. Clone or download this repository and download the ODB dataset.
 2. Switch to the top level of this repository, i.e. `cd /path/to/SNN-in-MIR`.
-3. Create a dirctory to put dataset in. `mkdir Datasets` and move all the file below the ODB and evaluator directories under `Datasets`. It should look like this: `SNN-in-MIR/Datasets/[ODB/evaluator]/`.
-4. Execute `run.sh` to predict all onset points and obtain the evaluation results in the ODB dataset. The results will be saved under the top-level directory.
+3. Create a dirctory to put dataset in. `mkdir Datasets` and move all the file below the `ODB` and `evaluator` directories under `Datasets`. It should look like this: `SNN-in-MIR/Datasets/[ODB/evaluator]/...`.
+4. Execute `run.sh` to predict all onset points and obtain the evaluation results in the ODB dataset. The results will be saved under the top-level directory. If you find that you cannot execute the script, you should try `sudo chmod +x run.sh`.
 
-___Note: The programs are developed and tested on Arch Linux. Users of other OS may need to modify some instructions in the source codes.___
+___Note: The programs are developed and tested on Arch Linux. Non-linux users may need to modify some instructions in the source codes or operate in a virtual machine.___
